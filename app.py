@@ -1,9 +1,39 @@
-import streamlit as st
-import google.generativeai as genai
-import time
-import os
+"""
+WorkMind AI — Intelligent Productivity Assistant
+================================================
+Vertical  : Productivity / Work
+Stack     : Python · Streamlit · Google Gemini API · Google Cloud Run
+Author    : github.com/AishwaryaSP1299
+
+Architecture:
+    Four specialised AI agents, each with a distinct persona and system prompt,
+    collaborate via shared session-state memory to deliver a cohesive productivity suite.
+"""
+
+from __future__ import annotations
+
 import json
+import os
+import time
 from datetime import date
+from typing import Any
+
+import google.generativeai as genai
+import streamlit as st
+
+# ─────────────────────────────────────────────────────────────
+# Constants
+# ─────────────────────────────────────────────────────────────
+MAX_INPUT_CHARS: int   = 4_000   # Hard cap on user input sent to the API
+MAX_RETRIES: int       = 3       # Gemini quota retry attempts
+RETRY_WAITS: list[int] = [20, 40, 65]  # Back-off schedule (seconds)
+APP_TITLE: str         = "WorkMind AI"
+APP_ICON: str          = "🧠"
+
+
+def sanitize_input(text: str) -> str:
+    """Strip whitespace and enforce MAX_INPUT_CHARS to prevent prompt injection."""
+    return text.strip()[:MAX_INPUT_CHARS]
 
 # ─────────────────────────────────────────────────────────────
 # Page config
@@ -104,7 +134,7 @@ def log_agent_action(agent_name: str, action: str):
 # ─────────────────────────────────────────────────────────────
 # Secret helper
 # ─────────────────────────────────────────────────────────────
-def get_secret(key: str):
+def get_secret(key: str) -> str | None:
     if key in os.environ:
         return os.environ[key]
     has_file = any(os.path.exists(p) for p in [
@@ -170,7 +200,7 @@ class Agent:
         self.system_prompt = system_prompt
         self.color        = color
 
-    def call(self, user_prompt: str, max_retries: int = 3) -> str:
+    def call(self, user_prompt: str, max_retries: int = MAX_RETRIES) -> str:
         """
         Send a prompt to this agent (prepends its system persona).
         Falls back through available models on 404. Retries on quota errors.
