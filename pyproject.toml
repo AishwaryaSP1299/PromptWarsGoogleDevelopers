@@ -1,0 +1,27 @@
+[project]
+name = "workmind-ai"
+version = "1.0.0"
+description = "Multi-agent AI productivity suite powered by Google Gemini"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "AishwaryaSP1299"}]
+keywords = ["gemini", "llm", "agents", "productivity", "streamlit"]
+
+[tool.pytest.ini_options]
+testpaths = ["."]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short --strict-markers"
+markers = [
+    "slow: marks tests that make real API calls (deselect with '-m \"not slow\"')",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+select = ["E", "F", "W", "I", "N", "D", "UP", "S", "B", "A", "C4", "SIM"]
+ignore = ["D100", "D104"]
+
+[tool.ruff.pydocstyle]
+convention = "google"
